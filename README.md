@@ -49,7 +49,7 @@ Days 1, 2, & 3:
 
 Note that this tutorial covers materials for this week and next week.
 
-## Task 1: Forking & cloning
+## Day 1: Forking & cloning
 
 ### Forking
 
@@ -129,7 +129,7 @@ forking process.
 - What is still muddy?
 - What do you need to try/do/explore to help with this muddiness?
 
-## Task 2: One quantitative response variable and two quantitative explanatory variable
+### One quantitative response variable and two quantitative explanatory variable
 
 You will continue using your data from Activity 2 or find a new dataset
 that contains one quantitative response variable, at least two
@@ -153,7 +153,7 @@ Read these directions first, then work through them.
     posting questions. Read through your peers’ muddy posts and do your
     best to provide help.
 
-## Task 3: Updating your forked GitHub repo
+### Day 2: Updating your forked GitHub repo
 
 You will need to start reading these directions back at my
 `gvsu-sta631/activity03-mlr` GitHub repo **and** have your forked
@@ -205,10 +205,21 @@ In summary, what you just did is pulled my changes into your repository.
 Git and GitHub refer to this as a “pull request” because you are asking
 to pull items into your repo.
 
-## Task 4: Assessing a multiple linear regression model
+### Assessing a multiple linear regression model
 
 In your `username/activity03-mlr` repo, go into the
 `day02-qualitative-explanatory` subfolder and follow the tasks listed in
+the `README`. You will continue to work in your `activity03.Rmd` file
+that you started during Day 1 of this activity.
+
+### Day 3: Updating your forked GitHub repo
+
+Redo the steps in Day 3 to pull in my recent changes.
+
+### Interaction terms
+
+In your `username/activity03-mlr` repo, go into the
+`day03-other-considerations` subfolder and follow the tasks listed in
 the `README`. You will continue to work in your `activity03.Rmd` file
 that you started during Day 1 of this activity.
 

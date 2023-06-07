@@ -1,9 +1,221 @@
-Day 2 - Assessing a MLR Model
+Day 3 - Assessing a MLR Model
 ================
 
 In this repository/directory you should see two items:
 
 - `README.md` - this document.
+
+You will continue working in your `activity03.Rmd` file that you started
+on [Day 1](../day01-quantitative-explanatory) and continued on [Day
+2](../day02-qualitative-explanatory). Specifically, we will expand your
+model from Day 2 that had one quantitative explanatory variable and one
+qualitative explanatory variable with two levels - for ease of
+interpretability. However, before we continue let’s take some time to
+pause and reflect.
+
+![check-in](../README-img/noun-magnifying-glass.png) **Check in**
+
+Either from memory or looking back at what I asked you to do in Activity
+1 - Day 3 and throughout Activities 2 & 3, what has been our analysis
+process? Note that this is my opinionated process, but I want you to
+take a few moments to sketch, list, or map the process we have used.
+Hint: we have not simply fit a regression model to data and been done -
+there was pre-work and post-work.
+
+I will give you 5 minutes individually and then 10 minutes in small
+groups. In your individual time, try to list everything you did and try
+to generalize it. In your group time, compare processes and then try to
+come up with an agreed upon “modeling pipeline”. Then, we will map out
+our current modeling pipeline ideas as a class.
+
+## Task 1: Pull your changes from GitHub into RStudio
+
+You successfully updated your GitHub repo from the main
+[`README`](../README), but we still need to update your RStudio files.
+Read these directions first, then work through them.
+
+- In the **Git** pane of RStudio (upper right-hand area), locate and
+  click on the
+  <img src="../README-img/pull-icon.png" alt="knit" width = "20"/>
+  **Pull** icon.
+- After a few moments (you might need to provide your GitHub username
+  and PAT), your **Files** pane will be updated with the new items.
+
+Since you are likely looking at the `README` (this page) on GitHub,
+nothing of importance for your work today was brought in. However, it is
+always a good habit to **pull** from GitHub before starting to work
+after taking a break. For example, if you were collaborating on a
+project with others, they might do work at different times than you (or
+even at the same time). It is always good to solve problems on your end
+before **push**ing to GitHub and causing more problems.
+
+## Today
+
+We will explore a MLR model with an interaction between quantitative and
+qualitative explanatory variables as well as see some other methods to
+assess the fit of our model. From the modeling process we came up with
+as a class, we will now address the “series of important questions that
+we should consider when performing multiple linear regression” (*ISL*
+[Section 3.2.2](https://hastie.su.domains/ISLR2/ISLRv2_website.pdf),
+p. 75):
+
+1.  Is at least one of the $p$ predictors $X_1$, $X_2$, $\ldots$, $X_p$
+    useful in predicting the response $Y$?
+2.  Do all the predictors help to explain $Y$, or is only a subset of
+    the predictors useful?
+3.  How well does the model fit the data?
+4.  Given a set of predictor values, what response value should we
+    predict and how accurate is our prediction?
+
+Note that the text (*ISL*) covers interactions between two quantitative
+explanatory variables as well. By including an interaction term in our
+model, we are relaxing the “additive assumption” a little. However, some
+folk think of the additive assumption being about the coefficients (the
+$\beta$s) and not the variables.
+
+## Task 2: Overall model - is at least one predictor useful?
+
+### Fitting the overall model with $qualitative \times quantitative$ interaction
+
+Recall from Day 2 that you explored the model:
+
+$$
+y = \beta_0 + \beta_1 \times \text{qualitative_variable} + \beta_2 \times \text{quantitative_variable} + \varepsilon
+$$
+
+Today we will explore a similar model, except that also includes the
+interaction between your qualitative and quantitative explanatory
+variables. That is,
+
+$$
+y = \beta_0 + \beta_1 \times \text{qualitative_variable} + \beta_2 \times \text{quantitative_variable} + \beta_3 \times ( \text{qualitative_variable} \times \text{quantitative_variable}) + \varepsilon
+$$
+
+- Open your `activity03.Rmd` file and
+  <img src="../README-img/knit-icon.png" alt="knit" width = "20"/>
+  **knit** it to run the work you completed during Days 1 & 2 of this
+  activity.
+
+- Create a new R code chunk and type the following (replacing
+  information as appropriate for your data), then run your code chunk or
+  knit your document.
+
+  ``` r
+  #fit the mlr model
+  lm_spec <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+  int_mod <- lm_spec %>% 
+  fit(response ~ qualitative * quantitative, data = data)
+
+  tidy(int_mod)
+  ```
+
+Note that I shortened the model statement using
+`qualitative * quantitative`, but this can sometimes be confusing to
+read. Another way to write the right-hand side of the equation is:
+`qualitative + quantitative + qualitative * quantitative`.
+
+After doing this, answer the following question:
+
+1.  When viewing the `tidy` output, notice that the interaction term is
+    listed as `qualitativelevel:quantitative`. Referring back to Day 2
+    with how R displays qualitative variables, interpret what this
+    syntax means.
+
+2.  Using page 100 of *ISL* as a reference, if needed, and your work
+    from Day 2, write the simplified equation of the line corresponding
+    to each level of your qualitative explanatory variable.
+
+3.  For two observations with similar values of the quantitative , which
+    level tends to have higher values of the response variable?
+
+4.  Like you did in Day 1, assess the fit of this model (no need to do
+    any formal hypothesis testing - we will explore this next). How does
+    `int_mod`’s fit compare to `mlr_mod`? What did you use to compare
+    these? Why?
+
+Recall our brief discussion on how many disciplines are moving away from
+$p$-values in favor of other methods. We will explore these other
+methods in Modules 3 & 4, but we will practice our classical methods
+here. This is known as an “overall $F$ test” and the hypotheses are:
+
+That (the null) no predictors are useful for the model (i.e., all slopes
+are equal to zero) versus the alternative that at least one predictor is
+useful for the model (i.e., at least one slope is not zero). One way to
+check this is to build our null model (no predictors) and then compare
+this to our candidate model (`int_mod`).
+
+- Create a new R code chunk and type the following (replacing
+  information as appropriate for your data), then run your code chunk or
+  knit your document.
+
+  ``` r
+  # null model
+  null_mod <- lm_spec %>% 
+  fit(response ~ 1, data = data)
+
+  anova(
+    extract_fit_engine(int_mod),
+    extract_fit_engine(null_mod)
+  )
+  ```
+
+5.  Using your background knowledge of $F$ tests, what is the $F$ test
+    statistic and $p$-value for this test? Based on an $\alpha = 0.05$
+    significant level, what should you conclude?
+
+## Task 3: Partial slope test - do all predictors help explain $y$?
+
+Assuming that your overall model is significant (at least one predictor
+is useful), we will continue on. Continue through these next tasks even
+if your overall model was not significant.
+
+We could do a similar process to fit a new model while removing one
+explanatory variable at at time, and using `anova` to compare these
+models. However, the `tidy` output also helps here (the `statistic` and
+`p.value` columns).
+
+For each slope, you are testing if that slope is zero (when including
+the other variables, the null) or if it is not zero (when including the
+other variables, the alternative). Because the interaction term is a
+combination of the other two variables, we should assess the first.
+
+6.  What is the $t$ test statistic and $p$-value associated with this
+    test? Based on an $\alpha = 0.05$ significant level, what should you
+    conclude?
+
+If your interaction term was not significant, you could consider
+removing it. Now look at your two non-interaction terms…
+
+7.  What are the $t$ test statistic and $p$-value associated with these
+    tests? Based on an $\alpha = 0.05$ significant level, what should
+    you conclude about these two predictors?
+
+You would not need to do (7) if the interaction was significant. You
+also should not remove a main variable (non-interaction variable) if the
+interaction variable remains in your model.
+
+## Task 4: Residual assessment - how well does the model fit the data?
+
+You have already done this step in past activities by exploring your
+residuals. Using your final model from Task 3, assess how well your
+model fits the data.
+
+## Task 5: Prediciton - what response value should we predict for new values
+
+If you split your data into training and testing subsets, use your
+testing dataset to predict. Also, assess how well your trained model
+does on this new data (your test data).
+
+## What is next?
+
+We will set the scene for classification models and have a friendly
+competition in our class meetings to apply our MLR modeling skills. For
+the competition, I will provide you with some additional tools and how
+to describe the output to help you assess models (i.e., studentized
+residual plots, leverage points, and variance inflation factors).
 
 <!--You will continue working in your `day01-fitting/activity03.Rmd` file that you started on [Day 1](../day01-fitting).
 

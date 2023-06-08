@@ -6,3 +6,366 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Task 2: Load the necessary packages
+
+```{r loading libraries}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(dplyr)
+library(broom)
+
+```
+
+## Task 3: Load your data
+
+```{r Loading the data}
+starbucks<- read_csv("starbucks.csv")
+head(starbucks)
+
+starbucks_subset <- starbucks %>% 
+  as.data.frame()
+```
+
+```{r}
+glimpse(starbucks)
+```
+
+**1.Is this an observational study or an experiment?**
+
+* Its an observational study.
+
+```{r, histogram}
+# To visualize the distribution of a continuous variable like "calories
+
+# Histogram of calories
+ggplot(starbucks, aes(x = calories)) +
+  geom_histogram(fill = "skyblue", color = "black") +
+  labs(x = "Calories", y = "Frequency") +
+  ggtitle("Distribution of Calories")
+
+```
+
+```{r,bar plot}
+## o visualize the frequency or count of different levels of a categorical variable like "type," 
+
+# Bar plot of type
+ggplot(starbucks, aes(x = type)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(x = "Type", y = "Count") +
+  ggtitle("Frequency of Types")
+
+```
+
+**2.Describe the distribution of your response variable. Is the distribution skewed? Are there any other interesting/odd features (outliers, multiple peaks, etc.)?**
+
+* The response variable in the Starbucks dataset is "calories," which represents the number of calories in different food items. To describe the distribution of this variable, we can examine its histogram.
+
+* The histogram of the "calories" variable shows that the distribution is positively skewed. This means that there is a tail on the right side of the distribution, indicating that some food items have higher calorie counts.
+
+* There are outliers in the dataset, particularly on the higher end of the calorie spectrum. It is possible that certain food items have exceptionally high calorie counts compared to the majority of the items.
+
+* There are multiple peaks or modes in the distribution, indicating distinct groups or categories of food items with different calorie ranges.
+
+* Overall, the distribution of the "calories" variable in the Starbucks dataset is likely to be positively skewed, suggesting that most food items have relatively lower calorie counts, while a few items have higher calorie counts. The presence of outliers and potential multiple peaks may indicate the existence of different categories or types of food items with varying calorie levels.
+
+**3.Excluding your response variable, select two other numeric variables (hint: look for <dbl> or <int> designations) and describe their relationship with each other using an appropriate visualization.**
+
+* We can consider the "fat" and "carb" variables. We can use a scatter plot to display the relationship between these two variables.
+
+```{r}
+
+# Scatter plot 
+scatter_plot <- ggplot(data = starbucks, aes(x = fat, y = carb)) +
+  geom_point() +
+  xlab("Fiber") +
+  ylab("Protein") +
+  ggtitle("Relationship between Fat and Carb")
+
+# Display the scatter plot
+scatter_plot
+
+```
+
+* There appears to be a positive relationship between fat and carbs. As the amount of fat increases, the amount of carbs also tends to increase.
+
+* There are a few outliers, indicating some products that have higher levels of both fat and carbs compared to the majority of the dataset.
+
+## Task 4: Pairwise relationships
+
+```{r}
+library(GGally)
+starbucks_subset<- starbucks %>% 
+  select(calories, fat, carb) %>% 
+  ggpairs()
+print(starbucks_subset)
+```
+
+**1.For each pair of variables, how would you describe the relationship graphically? Do any of the relationships look linear? Are there any interesting/odd features (outliers, non-linear patterns, etc.)?**
+
+* For the variables calories and fat, the points form a roughly straight line, it suggests a linear relationship.
+
+* For the variables calories and carb, the points form a roughly straight line, it suggests a linear relationship.
+
+**2.For each pair of variables, how would you describe the relationship numerically?**
+
+* A correlation coefficient of 0.759 between the "calories" and "fat" variables indicates a moderately strong positive linear relationship. This means that there is a tendency for higher-fat items to have higher calorie counts, and lower-fat items to have lower calorie counts.
+
+* A correlation coefficient of 0.675 between the "calories" and "carb" variables indicates a moderate positive linear relationship. This suggests that there is a tendency for food items with higher carbohydrate content to have higher calorie counts, and food items with lower carbohydrate content to have lower calorie counts.
+
+**3.Are your two explanatory variables collinear (correlated)? Essentially, this means that adding more than one of these variables to the model would not add much value to the model.**
+
+* Based on the correlation coefficient, there is a moderate positive correlation between "fat" and "carb" variables. 
+
+## Task 5: The multiple linear regression model
+
+
+```{r}
+library(ggplot2)
+library(parsnip)
+library(dplyr)
+
+starbucks_subset <- starbucks %>% 
+  as.data.frame()
+
+ggpairs(starbucks_subset, columns = c("calories", "fat", "carb"))
+
+lm_spec <- linear_reg() %>%
+set_mode("regression") %>%
+set_engine("lm")
+
+lm_spec
+
+mlr_mod <- lm_spec %>% 
+fit(calories ~ fat + carb, data = starbucks_subset)
+
+tidy(mlr_mod)
+```
+
+**1.Using your output, write the complete estimated equation for this model.**
+
+* The estimated equation for the model can be written as:
+
+     Estimated Calories = 35.9 + 10.0 * Fat + 3.68 * Carb
+     
+* This equation represents the estimated relationship between the variables fat, carb, and calories based on the linear regression model. It suggests that the calories can be predicted by adding the product of fat with its coefficient (10.0) and the product of carb with its coefficient (3.68) to the intercept term (35.9).
+     
+**2.For each of the estimated parameters (the y-intercept and the slopes associated with each explanatory variable - three total), interpret these values in the context of this problem. That is, what do they mean for a “non-data” person?**
+
+* Intercept (y-intercept): The intercept term in the equation is estimated to be 35.9. It represents the estimated average calorie value when both fat and carb are zero. However, in practical terms, it may not have a direct meaningful interpretation since it is unlikely to have zero values for both fat and carb in the dataset.
+
+* Fat (slope for the variable fat): The estimated slope for fat is 10.0. This means that, holding all other variables constant, a one-unit increase in the fat variable is associated with an estimated increase of 10.0 calories in the predicted calorie value. This suggests that higher levels of fat content in a Starbucks item are positively associated with higher calorie content.
+
+* Carb (slope for the variable carb): The estimated slope for carb is 3.68. This means that, holding all other variables constant, a one-unit increase in the carb variable is associated with an estimated increase of 3.68 calories in the predicted calorie value. This suggests that higher levels of carbohydrate content in a Starbucks item are also positively associated with higher calorie content.
+
+## Challenge: 3-D plots
+
+**Create a new R code chunk and add your code to create this plot.**
+
+```{r}
+library(scatterplot3d)
+
+# Create the scatter plot
+scatterplot3d(starbucks_subset$fat, starbucks_subset$carb, starbucks_subset$calories,
+              xlab = "Fat", ylab = "Carb", zlab = "Calories",
+              color = "blue", pch = 16)
+
+
+
+```
+
+
+**2.Compare your 3-D scatterplot and the GGally::ggpairs output. Comment on the strengths and weaknesses of these two visualizations. Do both display on GitHub when you push your work there?**
+
+* The 3-D scatterplot created using plotly provides an interactive and dynamic visualization of the relationship between the variables. It allows you to rotate and zoom the plot, giving you a better understanding of the distribution and patterns in the data. This type of plot is particularly useful when exploring three continuous variables simultaneously.
+
+* On the other hand, the GGally::ggpairs output provides a matrix of scatterplots, where each scatterplot represents the relationship between two variables. It is a static visualization that shows pairwise relationships between variables. This type of plot is useful for quickly identifying patterns and correlations between variables.
+
+
+```{r, Day 2}
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(parsnip)
+
+# Update the "type" variable with two levels
+starbucks_bakery <- starbucks %>%
+  mutate(type = ifelse(type == "bakery", "bakery", "non-bakery"))
+
+# Convert starbucks dataset to data frame
+starbucks_bakery <- as.data.frame(starbucks_bakery)  # Corrected variable name
+
+# Select the variables of interest and create a scatterplot matrix
+starbucks_bakery %>%
+  select(calories, type) %>%
+  ggpairs()
+
+# Fit the linear regression model
+lm_spec <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+mlr_mod <- lm_spec %>% 
+  fit(calories ~ type, data = starbucks_bakery)  # Corrected data variable
+
+# Extract model coefficients
+tidy(mlr_mod)
+
+```
+
+
+**1.What is the label that R assigned to this explanatory variable term?**
+
+* The label that R assigned to the explanatory variable term is "typenon-bakery".
+
+**2.What information is represented here?**
+
+* The information represented in the label "typenon-bakery" is the coefficient estimate for the "non-bakery" category of the qualitative explanatory variable. It indicates the expected change in the response variable (calories) when comparing the "non-bakery" category to the reference category (in this case, "bakery").
+
+**3.What information is missing here?**
+
+* The label "typenon-bakery" is missing the information about the reference category. It only provides information about the coefficient estimate for the "non-bakery" category, but it doesn't explicitly mention what the reference category is. In this case, since the original variable had two levels ("bakery" and "non-bakery"), "bakery" is assumed to be the reference category, but it is not explicitly mentioned in the label.
+
+**4.For each level of your qualitative variable, write the simplified equation of the estimated line for that level. Note that if your qualitative variable has two levels, you should have two simplified equations.**
+
+* For the "bakery" category:
+
+      Intercept term: 369
+      Coefficient for "typenon-bakery" level: 0 (since it is the reference level)
+The simplified equation for the "bakery" level can be written as:
+
+     Equation: calories = 369.0
+The coefficient for the "typenon-bakery" level is not included in the equation because it represents the difference from the reference category.
+
+* For the "non-bakery" category:
+
+    Intercept term: 369
+    Coefficient for "typenon-bakery" level: -64.1
+
+The simplified equation for the "non-bakery" level can be written as:
+calories = 369 - 64.1
+    Equation: calories = 369.0 - 64.1 * 1 = 304.9
+  
+The coefficient for the "typenon-bakery" level (-64.1) is included in the equation as it represents the difference from the reference category ("bakery").
+
+**5.Interpret the parameter estimate for the reference level of your categorical variable in the context of your problem**
+
+* In the context of the problem, the reference level for the categorical variable "type" is "bakery". The parameter estimate for the reference level represents the expected difference in the average calorie count between the reference level ("bakery") and the other level ("non-bakery").
+
+* In this case, the parameter estimate for the reference level is 0. This means that, on average, there is no difference in the calorie count between the "bakery" products and the reference level.
+
+* It's important to note that the reference level is chosen as the baseline for comparison, and the parameter estimate for the reference level helps establish a baseline expectation. The parameter estimate for the reference level allows us to compare the other level ("non-bakery") to this baseline and assess the difference in calorie count between the two levels.
+
+**6.Interpret the parameter estimate for your quantitative variable in the context of your problem.**
+
+* The term "(Intercept)" represents the parameter estimate for the intercept term in the linear regression model.
+
+* The parameter estimate for the intercept is 369. This estimate represents the estimated average value of the response variable (calories) when all other explanatory variables in the model are set to their reference levels or zero. In other words, it is the predicted value of calories for the reference category (bakery) of the qualitative variable "type" and for the reference level (zero) of the quantitative variable.
+
+**7.Create a new model with the same response and quantitative explanatory variable, but now choose a qualitative variable with more than two (but, say, less than 5) levels and obtain the tidy model output. How does R appear to handle categorical variables with more than two levels?**
+
+```{r}
+# Fit the linear regression model with a categorical variable with more than two levels
+lm_spec <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+mlr_mod <- lm_spec %>% 
+  fit(calories ~ type + fat, data = starbucks)
+
+# Extract model coefficients
+tidy(mlr_mod)
+
+```
+
+* R handles categorical variables with more than two levels by creating separate coefficients for each level compared to a reference level. In the tidy model output, we can see one row for each level of the categorical variable, along with the corresponding estimate, standard error, statistic, and p-value for each level.
+
+
+```{r, Day 3}
+
+## Task: 2
+
+#fit the mlr model
+lm_spec <- linear_reg() %>%
+set_mode("regression") %>%
+set_engine("lm")
+
+int_mod <- lm_spec %>% 
+fit(calories ~ type * fat, data = starbucks)
+
+tidy(int_mod)
+```
+
+**1.When viewing the tidy output, notice that the interaction term is listed as qualitativelevel:quantitative. Referring back to Day 2 with how R displays qualitative variables, interpret what this syntax means.**
+
+* When R displays the interaction term in this format, it indicates that the model has included an interaction effect between the qualitative variable and the quantitative variable, specifically focusing on a particular level of the qualitative variable.
+
+* The "qualitativelevel" represents a specific level of the qualitative variable, and "quantitative" represents the quantitative variable.
+
+* Interpreting this syntax, we can understand that R is accounting for the interaction between the specific levels of the qualitative variable and the quantitative variable in the model, allowing us to estimate the effects of these interactions on the response variable.
+
+**2.Write the simplified equation of the line corresponding to each level of your qualitative explanatory variable.**
+
+* For the "typebistro box" level:
+response = (Intercept) + estimate_typebistro box + estimate_fat * fat + estimate_typebistro box:fat * fat
+
+* For the "typehot breakfast" level:
+response = (Intercept) + estimate_typehot breakfast + estimate_fat * fat + estimate_typehot breakfast:fat * fat
+
+* For the "typeparfait" level:
+response = (Intercept) + estimate_typeparfait + estimate_fat * fat + estimate_typeparfait:fat * fat
+
+* For the "typepetite" level:
+response = (Intercept) + estimate_typepetite + estimate_fat * fat + estimate_typepetite:fat * fat
+
+* For the "typesalad" level:
+response = (Intercept) + estimate_typesalad + estimate_fat * fat + estimate_typesalad:fat * fat
+
+* For the "typesandwich" level:
+response = (Intercept) + estimate_typesandwich + estimate_fat * fat + estimate_typesandwich:fat * fat
+
+**3.For two observations with similar values of the quantitative , which level tends to have higher values of the response variable?**
+
+* The "typesandwich" level has the highest estimate (105.0) among all the levels of the qualitative variable. Therefore, for two observations with similar values of the quantitative variable, the "typesandwich" level tends to have higher values of the response variable compared to the other levels.
+
+**4.How does int_mod’s fit compare to mlr_mod? What did you use to compare these? Why?**
+
+* To compare the fits of int_mod and mlr_mod, we can use the model's R-squared values. The R-squared value is a measure of how well the model fits the data, indicating the proportion of the variance in the response variable that can be explained by the model.
+
+* A higher R-squared value indicates a better fit, as it indicates a larger proportion of the variance in the response variable is accounted for by the model.
+
+* By comparing the R-squared values of int_mod and mlr_mod, we can assess the relative goodness of fit of the two models and determine which one provides a better explanation of the data.
+
+```{r}
+# null model
+null_mod <- lm_spec %>% 
+fit(calories ~ 1, data = starbucks)
+
+anova(
+  extract_fit_engine(int_mod),
+  extract_fit_engine(null_mod)
+)
+```
+
+**5.what is the F test statistic and p-value for this test? Based on an 
+ alpha =0.05 significant level, what should you conclude.**
+ 
+* Test statistic (F): The test statistic is 20.803.
+
+* p-value (Pr(>F)): The p-value is less than 2.2e-16, which is a very small value.
+
+* Since the p-value is much smaller than 0.05, we reject the null hypothesis and conclude that at least one predictor is useful in the model.
+
+* In other words, there is strong evidence to suggest that the interaction between the type and fat predictors has a significant impact on the response variable (calories).
+
+**6.What is the t test statistic and p-value associated with this test? Based on an alpha=0.05 significant level, what should you conclude?.**
+
+* F-test statistic: 20.803
+  p-value: < 2.2e-16 (which means it is extremely small)
+  
+* Since the p-value is much smaller than 0.05 (p < 0.05), we reject the null hypothesis. This indicates that there is strong evidence to suggest that at least one predictor in Model 1 (calories ~ type * fat) is useful in explaining the variation in the response variable (calories), compared to the null model (Model 2: calories ~ 1).
+
+ 
+ 
+ 
